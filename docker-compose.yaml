@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  db:
+    image: mariadb
+    restart: always
+    env_file: ./.env
+    environment:
+      MYSQL_ROOT_PASSWORD: admin321
+      MYSQL_DATABASE: trudo_db
+    ports:
+      - 3306:3306
+
+  db_test:
+    image: mariadb
+    restart: always
+    env_file: ./.env
+    environment:
+      MYSQL_ROOT_PASSWORD: admin321
+      MYSQL_DATABASE: trudo_db_test
+    ports:
+      - 33060:3306
+
+  app:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    image: trudo-dev
+    depends_on:
+      - db
+    stdin_open: true
+    tty: true
+    volumes:
+      - .:/app
+    environment:
+      - DB_HOST=db
+    ports:
+      - 3001:3001
+
+  test:
+    build:
+      context: .
+      dockerfile: ./docker-test/Dockerfile
+    image: trudo-test
+    depends_on:
+      - db_test
+    stdin_open: true
+    tty: true
+    volumes:
+      - .:/app
+    environment:
+      - DB_HOST=db_test
+    ports:
+      - 3001:3001
